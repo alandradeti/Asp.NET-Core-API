@@ -1,0 +1,226 @@
+<div class="d-flex">
+  <div class="form-inline mr-auto">
+    <div class="form-group mb-2">
+      <label class="mr-2">Filter:</label> <input type="text" 
+      class="form-control mr-2" 
+      placeholder="buscar"
+      [(ngModel)]="filterList"
+      >
+    </div>
+  </div>
+  <div>
+    <button class="btn btn-outline-primary" (click)="openModal(modalEdit)">
+      <i class="fa fa-plus-circle"></i>&nbsp;
+      New Event
+    </button>
+  </div>
+</div>
+<h3>Filter: {{filterList}}</h3>
+<table class="table table-striped">
+  <thead class="thead-light">
+    <tr>
+      <th>
+        <button class="btn btn-outline-primary" (click)="switchImage()">
+          <i class="{{showImage ? 'fa fa-eye-slash' : 'fa fa-eye'}}"></i>
+          {{showImage ? 'Hide' : 'Show'}}
+          Image
+        </button>
+      </th>
+      <th>#</th>
+      <th>Theme</th>
+      <th>Local</th>
+      <th>Date</th>
+      <th>Amount of People</th>
+      <th>Lot</th>
+      <th>Options</th>
+    </tr>
+  </thead>
+  <tbody *ngIf="events && events.length">
+    <tr *ngFor="let event of filteredEvents">
+      <td>
+        <img *ngIf="showImage"
+        src="http://localhost:5000/img/{{event.imageURL}}" 
+        [style.width.px] = "imageWidth"
+        [style.margin.px] = "imageMargin"
+        >
+      </td>
+      <td>{{event.id}}</td>
+      <td>{{event.theme}}</td>
+      <td>{{event.local}}</td>
+      <td>{{event.date | DateTimeFormatPipe}}</td>
+      <td>{{event.amountPeople}}</td>
+      <td>
+        <div *ngIf="!event.lots.length">
+          Não informado
+        </div>
+        <div *ngIf="event.lots.length">
+          {{event.lots[0].name | uppercase}}
+        </div>
+      </td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-success" tooltip="Edit" (click)="openModal(modalEdit)">
+            <i class="fa fa-edit"></i>
+          </button>
+          <button class="btn btn-sm btn-danger" tooltip="Delete">
+            <i class="fa fa-eraser"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+  <tfoot *ngIf="!events">
+    <tr>
+      <td colspan="7" class="text-center">
+        <h4>No events found!</h4>
+      </td>
+    </tr>
+  </tfoot>
+</table>
+
+<div bsModal #modalEdit="bs-modal" class="modal fade" tabindex="-1"
+     role="dialog" aria-labelledby="dialog-sizes-name1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="dialog-sizes-name1" class="modal-title pull-left">Large modal</h4>
+        <button type="button" class="close pull-right" (click)="modalEdit.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="registerForm">
+          <div class="form-row">
+            <div class="form-group col-md-12">
+              <label>Theme</label>
+              <input type="text" class="form-control"
+                [ngClass]="{'is-invalid': registerForm.get('theme').errors && registerForm.get('theme').touched}"
+                formControlName="theme" placeholder=""
+              >
+              <div *ngIf="registerForm.get('theme').hasError('required') && registerForm.get('theme').touched" 
+                class="invalid-feedback"
+              >
+                Theme is mandatory
+              </div>
+              <div *ngIf="registerForm.get('theme').hasError('minlength') && registerForm.get('theme').touched" 
+                class="invalid-feedback"
+              >
+                Theme must be at least 4 characters
+              </div>
+              <div *ngIf="registerForm.get('theme').hasError('maxlength') && registerForm.get('theme').touched" 
+                class="invalid-feedback"
+              >
+                Theme must have a maximum of 50 characters
+              </div>
+            </div>
+          </div>  
+          <div class="form-row">
+            <div class="form-group col-md-8">
+              <label>Local</label>
+              <input type="text" class="form-control"
+                [ngClass]="{'is-invalid': registerForm.get('local').errors && registerForm.get('local').touched}"
+                formControlName="local" placeholder=""
+              >
+              <div *ngIf="registerForm.get('local').hasError('required') && registerForm.get('local').touched" 
+                class="invalid-feedback"
+              >
+                Local is mandatory
+              </div>
+            </div>
+            <div class="form-group col-md-4">
+              <label>Date</label>
+              <input type="text" class="form-control"
+                bsDatepicker
+                [bsConfig]="{ dateInputFormat : 'DD/MM/YYYY hh:mm a' }"
+                [ngClass]="{'is-invalid': registerForm.get('date').errors && registerForm.get('date').touched}"
+                formControlName="date" placeholder=""
+              >
+              <div *ngIf="registerForm.get('date').hasError('required') && registerForm.get('date').touched" 
+                class="invalid-feedback"
+              >
+                Date is mandatory
+              </div>
+            </div>
+          </div>  
+          <div class="form-row">
+            <div class="form-group col-md-3">
+              <label>Amount of People</label>
+              <input type="number" class="form-control"
+                [ngClass]="{'is-invalid': registerForm.get('amountPeople').errors && registerForm.get('amountPeople').touched}"
+                formControlName="amountPeople" placeholder=""
+              >
+              <div *ngIf="registerForm.get('amountPeople').hasError('required') && registerForm.get('amountPeople').touched" 
+                class="invalid-feedback"
+              >
+                Amount of people is mandatory
+              </div>
+              <div *ngIf="registerForm.get('amountPeople').hasError('max') && registerForm.get('amountPeople').touched" 
+                class="invalid-feedback"
+              >
+                Amount of people must be less than 120000.
+              </div>
+            </div>
+            <div class="form-group col-md-9">
+              <label>Image</label>
+              <input type="text" class="form-control"
+                [ngClass]="{'is-invalid': registerForm.get('imageURL').errors && registerForm.get('imageURL').touched}"
+                formControlName="imageURL" placeholder=""
+              >
+              <div *ngIf="registerForm.get('imageURL').hasError('required') && registerForm.get('imageURL').touched" 
+                class="invalid-feedback"
+              >
+                Image is mandatory
+              </div>
+            </div>
+          </div>  
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label>Telephone</label>
+              <input type="text" class="form-control"
+                [ngClass]="{'is-invalid': registerForm.get('telephone').errors && registerForm.get('telephone').touched}"
+                formControlName="telephone" placeholder=""
+              >
+              <div *ngIf="registerForm.get('telephone').hasError('required') && registerForm.get('telephone').touched" 
+                class="invalid-feedback"
+              >
+                Telephone is mandatory
+              </div>
+            </div>
+            <div class="form-group col-md-8">
+              <label>Email</label>
+              <input type="text" class="form-control"
+                [ngClass]="{'is-invalid': registerForm.get('email').errors && registerForm.get('email').touched}"
+                formControlName="email" placeholder=""
+              >
+              <div *ngIf="registerForm.get('email').hasError('required') && registerForm.get('email').touched"
+                class="invalid-feedback"
+              >
+                Email is mandatory
+              </div>
+              <div *ngIf="registerForm.get('email').hasError('email') && registerForm.get('email').touched"
+                class="invalid-feedback"
+              >      
+                It must be a valid email.
+              </div>
+            </div>
+          </div> 
+        </form>
+      </div>
+      <p>Form Value: {{registerForm.value | json}}</p>
+      <p>Form Status: {{registerForm.status | json}}</p>
+      <div class="modal-footer d-flex">
+        <button class="btn btn-secondary" (click)="modalEdit.hide()">
+          Close
+        </button>
+        <button class="btn btn-primary ml-auto" [disabled]="!registerForm.valid" (click)="saveChanges(modalEdit)">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--
+  <p>Form Value: {{registerForm.value | json}}</p>
+  <p>Form Status: {{registerForm.status | json}}</p>
+-->
