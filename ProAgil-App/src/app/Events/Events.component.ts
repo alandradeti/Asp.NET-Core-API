@@ -21,6 +21,12 @@ export class EventsComponent implements OnInit {
   events: Event[];
   event: Event;
 
+  // Recording modes
+  modeSave = 'post';
+
+  // Delete
+  bodyDeleteEvent = '';
+
   // Image
   imageWidth = 50;
   imageMargin = 2;
@@ -50,6 +56,35 @@ export class EventsComponent implements OnInit {
   set filterList(value: string){
     this._filterList = value;
     this.filteredEvents = this.filterList ? this.filterEvents(this.filterList) : this.events;
+  }
+
+  editEvent(event: Event, modalEdit: any){
+    this.modeSave = 'put';
+    this.openModal(modalEdit);
+    this.event = event;
+    this.registerForm.patchValue(event);
+  }
+  
+  newEvent(modalEdit: any){
+    this.modeSave = 'post';
+    this.openModal(modalEdit);
+  }
+
+  deleteEvent(event: Event, modalEdit: any) {
+    this.openModal(modalEdit);
+    this.event = event;
+    this.bodyDeleteEvent = `Are you sure you want to delete the Event: ${event.theme}, Code: ${event.id}`;
+  }
+
+  confirmDelete(modalEdit: any) {
+    this.eventService.deleteEvent(this.event.id).subscribe(
+      () => {
+          modalEdit.hide();
+          this.getEvents();
+        }, error => {
+          console.log(error);
+        }
+    );
   }
 
   openModal(modalEdit: any){
@@ -89,17 +124,27 @@ export class EventsComponent implements OnInit {
 
   saveChanges(modalEdit: any){
     if (this.registerForm.valid) {
-      this.event = Object.assign({}, this.registerForm.value);
-      console.log(this.event);
-      this.eventService.postEvent(this.event).subscribe(
-        (newEvent: Event) => {
-          console.log(newEvent);
-          modalEdit.hide();
-          this.getEvents();
-        }, error => {
-          console.log(error);
-        }
-      );
+      if(this.modeSave === 'post'){
+        this.event = Object.assign({}, this.registerForm.value);
+        this.eventService.postEvent(this.event).subscribe(
+          (newEvent: Event) => {
+            modalEdit.hide();
+            this.getEvents();
+          }, error => {
+            console.log(error);
+          }
+        );
+      } else {
+        this.event = Object.assign({id: this.event.id}, this.registerForm.value);
+        this.eventService.putEvent(this.event).subscribe(
+          () => {
+            modalEdit.hide();
+            this.getEvents();
+          }, error => {
+            console.log(error);
+          }
+        );
+      }
     }
   }
 
